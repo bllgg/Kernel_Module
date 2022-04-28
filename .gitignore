@@ -1,0 +1,11 @@
+# ignoring files in Module
+Module/.tmp_versions
+Module/.cache.mk
+Module/*.cmd
+Module/*.ko
+Module/*.o
+Module/*.mod.c
+Module/*.symvers
+Module/*.order
+
+
