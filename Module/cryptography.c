@@ -4,6 +4,8 @@
 #include <linux/kernel.h>
 #include <linux/fs.h>
 #include <linux/uaccess.h>
+#include "ioctl_basic.h"
+
 #define  DEVICE_NAME "cryptography"
 #define  CLASS_NAME  "crypto"
 
@@ -23,6 +25,7 @@ static int     dev_open(struct inode *, struct file *);
 static int     dev_release(struct inode *, struct file *);
 static ssize_t dev_read(struct file *, char *, size_t, loff_t *);
 static ssize_t dev_write(struct file *, const char *, size_t, loff_t *);
+static long ioctl_funcs(struct file *filp,unsigned int cmd, unsigned long arg);
 
 static struct file_operations fops =
 {
@@ -30,6 +33,7 @@ static struct file_operations fops =
    .read = dev_read,
    .write = dev_write,
    .release = dev_release,
+   .unlocked_ioctl= ioctl_funcs,
 };
 
 static int __init crypto_init(void){
@@ -69,7 +73,25 @@ static void __exit crypto_exit(void){
    class_unregister(cryptoClass);                          // unregister the device class
    class_destroy(cryptoClass);                             // remove the device class
    unregister_chrdev(majorNumber, DEVICE_NAME);             // unregister the major number
-   printk(KERN_INFO "CRYPTOGRAPHY: Goodbye from the LKM!\n");
+   printk(KERN_INFO "CRYPTOGRAPHY: Exiting from the LKM!\n");
+}
+
+static long ioctl_funcs(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+    int ret=0;
+    switch(cmd) {
+    case IOCTL_ENCRYPT: 
+        printk(KERN_INFO "CRYPTOGRAPHY: Encrypt selected");
+        
+        break;
+    case IOCTL_DECRYPT:
+        printk(KERN_INFO "CRYPTOGRAPHY: Decrypt selected");
+        
+        break;
+    default:
+        printk(KERN_INFO "CRYPTOGRAPHY: Command not found");
+    } 
+    return ret;
 }
 
 static int dev_open(struct inode *inodep, struct file *filep){

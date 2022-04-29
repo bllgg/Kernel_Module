@@ -4,8 +4,10 @@
 #include<fcntl.h>
 #include<string.h>
 #include<unistd.h>
+#include "../Module/ioctl_basic.h"
 
 #define BUFFER_LENGTH 256
+
 static char receive[BUFFER_LENGTH];
 
 int main(){
@@ -17,6 +19,9 @@ int main(){
       perror("Failed to open the device...");
       return errno;
    }
+
+   ioctl(fd,IOCTL_ENCRYPT);
+
    printf("Type in a short string to send to the kernel module:\n");
    scanf("%[^\n]%*c", stringToSend);
    printf("Writing message to the device [%s].\n", stringToSend);
@@ -29,6 +34,8 @@ int main(){
    printf("Press ENTER to read back from the device...\n");
    getchar();
 
+   ioctl(fd,IOCTL_DECRYPT);
+   
    printf("Reading from the device...\n");
    ret = read(fd, receive, BUFFER_LENGTH);
    if (ret < 0){
