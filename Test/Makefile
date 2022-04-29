@@ -34,7 +34,7 @@
 #
 
 
-ROOTNAME=HelloWorldTest
+ROOTNAME=cryptographyTest
 HW=
 FOPTION=
 RUNOPTIONS=
