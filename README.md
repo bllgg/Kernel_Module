@@ -1,16 +1,16 @@
 # CSC415-Device-Driver
 
-## Build the kernal module and user application
+## Build the kernel module and user application
 
 You can build the kernel module by executing the following command in the Module directory.
 ```
 make all
 ```
-The user app can be build using the 
+The user app can be built using the 
 ```
 make cryptographyTest
 ```
-command in Test directory.
+command in the Test directory.
 
 You can clear all the build files using
 ```
@@ -21,7 +21,7 @@ command in both Module and Test directories.
 
 ## View the kernel logs
 
-kernel logs of the linux kernel can be seen by using
+kernel logs of the Linux kernel can be seen by using
 ```
 dmesg --following
 ```
@@ -29,7 +29,7 @@ command.
 
 ## Install the kernel module
 
-You need to install the built kernel module in to the kernel using
+You need to install the built kernel module into the kernel using
 ```
 sudo insmode cryptography.ko
 ```
@@ -45,13 +45,13 @@ sudo ./cryptographyTest
 ```
 - First you will be asked for provide a key. For that, you need to inser a single capital English letter.
 
-- Then you will be asked for provide the mode. you need to insert the number of the option.
+- Then you will be asked for provide the mode. You need to insert the number of the option.
 
 - Then insert the phrase you need to encrypt or decrypt
 
 - Finally you will get the encrypted or decrypted phrase.
 
-**Note:** as im using symmetryc key encription technique, same key can be used for bothe Encryptiona and decryption.
+**Note:** as I'm using symmetric key encription technique, same key can be used for both encryption and decryption.
 
 ## Unload the kernel module
 
