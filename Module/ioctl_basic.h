@@ -1,6 +1,5 @@
 #include <linux/ioctl.h>
 
-
 #define ENCRYPT_MAGIC       10
 #define DECRYPT_MAGIC       15
 #define INSERT_KEY_MAGIC    20
