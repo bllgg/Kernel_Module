@@ -10,8 +10,6 @@
 #define CLASS_NAME "crypto"
 
 #define BUFFER_LENGTH 16
-#define KEY_LENGTH 4
-#define INITIAL_VECTOR 'A'
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("John Doe"); // ToDO: Change this as your name
@@ -21,13 +19,12 @@ MODULE_VERSION("1.0");
 static int majorNumber;
 static char received_message[BUFFER_LENGTH] = {0};
 static char send_message[BUFFER_LENGTH] = {0};
-unsigned char key[KEY_LENGTH] = {0};
+unsigned char key;
 static short size_of_message;
 static int numberOpens = 0;
 static struct class *cryptoClass = NULL;
 static struct device *cryptoDevice = NULL;
 static bool isEncrypt = true;
-static char initial_vector = INITIAL_VECTOR;
 
 static int dev_open(struct inode *, struct file *);
 static int dev_release(struct inode *, struct file *);
@@ -128,12 +125,8 @@ static long ioctl_funcs(struct file *filp, unsigned int cmd, unsigned long arg)
         break;
 
     case IOCTL_INSERT_KEY:
-        key[0] = arg & 0xFF;
-        key[1] = (arg >> 8) & 0xFF;
-        key[2] = (arg >> 16) & 0xFF;
-        key[3] = (arg >> 24) & 0xFF;
-
-        printk(KERN_INFO "CRYPTOGRAPHY: Added key => %4s", key);
+        key = arg & 0xFF;
+        printk(KERN_INFO "CRYPTOGRAPHY: Added key => %c", key);
 
         break;
     default:
@@ -146,34 +139,33 @@ static long ioctl_funcs(struct file *filp, unsigned int cmd, unsigned long arg)
 
 static int encrypt_or_decrypt(bool encrypt)
 {
-    char compact_key = key[0] ^ key[1] ^ key[2] ^ key[3];
 
     if (encrypt)
     {
-        char ciper_text = initial_vector ^ received_message[0] ^ compact_key;
-        send_message[0] = ciper_text;
-
         size_t i;
 
-        for (i = 1; i < strlen(received_message); i++)
+        for (i = 0; i < strlen(received_message); i++)
         {
-            ciper_text = ciper_text ^ compact_key ^ received_message[i];
-            send_message[i] = ciper_text;
+            send_message[i] = (received_message[i] -32 + key -32) % 95 + 32;
+            printk(KERN_INFO "CRYPTOGRAPHY: Encrypted message => %c", send_message[i]);
         }
+        
         return 0;
     }
     else
     {
-        char vector = received_message[0];
-        send_message[0] = initial_vector ^ received_message[0] ^ compact_key;
-
         size_t i;
 
-        for (i = 1; i < strlen(received_message); i++)
+        for (i = 0; i < strlen(received_message); i++)
         {
-            send_message[i] = vector ^ received_message[i] ^ compact_key;
-            vector = received_message[i];
+            char temp = ((received_message[i] - 32) - (key - 32));
+            if (temp < 0)
+            {
+                temp = 95 + temp;
+            }
+            send_message[i] = temp + 32;
         }
+        
         return 0;
     }
 

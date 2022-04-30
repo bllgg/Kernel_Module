@@ -7,7 +7,6 @@
 #include "../Module/ioctl_basic.h"
 
 #define BUFFER_LENGTH 16
-#define KEY_LENGTH 4
 
 static char receive[BUFFER_LENGTH];
 
@@ -15,7 +14,7 @@ int main()
 {
 	int ret, fd;
 	char stringToSend[BUFFER_LENGTH];
-	char key[KEY_LENGTH];
+	char key;
 	int mode;
 
 	unsigned long converted_key;
@@ -29,21 +28,15 @@ int main()
 		return errno;
 	}
 
-	printf("Insert the Key (%d charactor long):\n", KEY_LENGTH);
-	scanf("%[^\n]%*c", key);
-	if (strlen(key) != KEY_LENGTH)
+	printf("Insert the Key (Key should be a capital English letter):\n");
+	scanf(" %c", &key);
+	if (key < 41 || key > 90)
 	{
-		printf("Key should be %d chars!\n", KEY_LENGTH);
+		printf("Invalid key...\n");
 		return -1;
 	}
 
-	converted_key = 0;
-	converted_key |= (key[0]);
-	converted_key |= (key[1] << 8);
-	converted_key |= (key[2] << 16);
-	converted_key |= (key[3] << 24);
-
-	ioctl(fd, IOCTL_INSERT_KEY, converted_key);
+	ioctl(fd, IOCTL_INSERT_KEY, (unsigned long) key);
 
 	printf("Chose mode (input the option number):\n");
 	printf("1. Encryption\n");
@@ -74,10 +67,6 @@ int main()
 	}
 
 	printf("Writing message to the device [%s].\n", stringToSend);
-	for (size_t i = 0; i < strlen(stringToSend); i++)
-	{
-		printf("%X \n", stringToSend[i]);
-	}
 
 	ret = write(fd, stringToSend, strlen(stringToSend));
 	if (ret < 0)
@@ -100,10 +89,6 @@ int main()
 		return errno;
 	}
 	printf("The received message is: [%s]\n", receive);
-	for (size_t i = 0; i < BUFFER_LENGTH; i++)
-	{
-		printf("%X \n", receive[i]);
-	}
 	
 	printf("End of the program\n");
 	return 0;
