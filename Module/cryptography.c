@@ -9,7 +9,7 @@
 #define DEVICE_NAME "cryptography"
 #define CLASS_NAME "crypto"
 
-#define BUFFER_LENGTH 256
+#define BUFFER_LENGTH 16
 #define KEY_LENGTH 4
 #define INITIAL_VECTOR 'A'
 
@@ -34,7 +34,7 @@ static int dev_release(struct inode *, struct file *);
 static ssize_t dev_read(struct file *, char *, size_t, loff_t *);
 static ssize_t dev_write(struct file *, const char *, size_t, loff_t *);
 static long ioctl_funcs(struct file *filp, unsigned int cmd, unsigned long arg);
-static bool encrypt_or_decrypt(bool encrypt);
+static int encrypt_or_decrypt(bool encrypt);
 
 static struct file_operations fops =
     {
@@ -95,16 +95,36 @@ static long ioctl_funcs(struct file *filp, unsigned int cmd, unsigned long arg)
     int ret = 0;
     switch (cmd)
     {
+
+    case IOCTL_EXECUTE:
+        if (isEncrypt)
+        {
+            ret = encrypt_or_decrypt(true);
+        }
+        else
+        {
+            ret = encrypt_or_decrypt(false);
+        }
+
+        if (ret == 0)
+        {
+            printk(KERN_INFO "CRYPTOGRAPHY: Executed successfully\n");
+        }
+        else
+        {
+            printk(KERN_INFO "CRYPTOGRAPHY: Executed unsuccessfully\n");
+        }
+        
+        break;
+
     case IOCTL_ENCRYPT:
         printk(KERN_INFO "CRYPTOGRAPHY: Encrypt selected");
         isEncrypt = true;
-        encrypt_or_decrypt(isEncrypt);
         break;
 
     case IOCTL_DECRYPT:
         printk(KERN_INFO "CRYPTOGRAPHY: Decrypt selected");
         isEncrypt = false;
-        encrypt_or_decrypt(isEncrypt);
         break;
 
     case IOCTL_INSERT_KEY:
@@ -118,11 +138,13 @@ static long ioctl_funcs(struct file *filp, unsigned int cmd, unsigned long arg)
         break;
     default:
         printk(KERN_INFO "CRYPTOGRAPHY: Command not found");
+        ret = -EINVAL;
+        break;
     }
     return ret;
 }
 
-static bool encrypt_or_decrypt(bool encrypt)
+static int encrypt_or_decrypt(bool encrypt)
 {
     char compact_key = key[0] ^ key[1] ^ key[2] ^ key[3];
 
@@ -131,31 +153,31 @@ static bool encrypt_or_decrypt(bool encrypt)
         char ciper_text = initial_vector ^ received_message[0] ^ compact_key;
         send_message[0] = ciper_text;
 
-        size_t i = 1;
+        size_t i;
 
         for (i = 1; i < strlen(received_message); i++)
         {
             ciper_text = ciper_text ^ compact_key ^ received_message[i];
             send_message[i] = ciper_text;
         }
-        return true;
+        return 0;
     }
     else
     {
         char vector = received_message[0];
         send_message[0] = initial_vector ^ received_message[0] ^ compact_key;
 
-        size_t i = 1;
+        size_t i;
 
         for (i = 1; i < strlen(received_message); i++)
         {
             send_message[i] = vector ^ received_message[i] ^ compact_key;
             vector = received_message[i];
         }
-        return true;
+        return 0;
     }
 
-    return false;
+    return -1;
 }
 
 static int dev_open(struct inode *inodep, struct file *filep)
@@ -194,6 +216,12 @@ static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, lof
 
 static int dev_release(struct inode *inodep, struct file *filep)
 {
+    size_t i;
+    for (i = 0; i < BUFFER_LENGTH; i++)
+    {
+        received_message[i] = 0;
+        send_message[i] = 0;
+    }
     printk(KERN_INFO "CRYPTOGRAPHY: Device successfully closed\n");
     return 0;
 }

@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include "../Module/ioctl_basic.h"
 
-#define BUFFER_LENGTH 256
+#define BUFFER_LENGTH 16
 #define KEY_LENGTH 4
 
 static char receive[BUFFER_LENGTH];
@@ -64,7 +64,7 @@ int main()
 		exit(-1);
 	}
 
-	printf("Type in a short string to send to the kernel module for crypto graphic operation:\n");
+	printf("Type in a short string to send to the kernel module for cryptographic operation:\n");
 	scanf(" %[^\n]%*c", stringToSend);
 
 	if (strlen(stringToSend) > BUFFER_LENGTH)
@@ -74,12 +74,20 @@ int main()
 	}
 
 	printf("Writing message to the device [%s].\n", stringToSend);
+	for (size_t i = 0; i < strlen(stringToSend); i++)
+	{
+		printf("%X \n", stringToSend[i]);
+	}
+
 	ret = write(fd, stringToSend, strlen(stringToSend));
 	if (ret < 0)
 	{
 		perror("Failed to write the message to the device.");
 		return errno;
 	}
+
+	printf("Executing cryptographic operation...\n");
+	ioctl(fd, IOCTL_EXECUTE);
 
 	printf("Press ENTER to read back from the device after the cryptographic operation...\n");
 	getchar();
@@ -92,6 +100,11 @@ int main()
 		return errno;
 	}
 	printf("The received message is: [%s]\n", receive);
+	for (size_t i = 0; i < BUFFER_LENGTH; i++)
+	{
+		printf("%X \n", receive[i]);
+	}
+	
 	printf("End of the program\n");
 	return 0;
 }
