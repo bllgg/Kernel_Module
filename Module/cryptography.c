@@ -11,11 +11,13 @@
 
 #define BUFFER_LENGTH 16
 
+// Module details
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("John Doe"); // ToDO: Change this as your name
 MODULE_DESCRIPTION("A simple Linux char driver for encrypt and decrypt");
 MODULE_VERSION("1.0");
 
+// Variables
 static int majorNumber;
 static char received_message[BUFFER_LENGTH] = {0};
 static char send_message[BUFFER_LENGTH] = {0};
@@ -26,6 +28,7 @@ static struct class *cryptoClass = NULL;
 static struct device *cryptoDevice = NULL;
 static bool isEncrypt = true;
 
+// Function prototypes
 static int dev_open(struct inode *, struct file *);
 static int dev_release(struct inode *, struct file *);
 static ssize_t dev_read(struct file *, char *, size_t, loff_t *);
@@ -33,6 +36,7 @@ static ssize_t dev_write(struct file *, const char *, size_t, loff_t *);
 static long ioctl_funcs(struct file *filp, unsigned int cmd, unsigned long arg);
 static int encrypt_or_decrypt(bool encrypt);
 
+// File operations structure
 static struct file_operations fops =
     {
         .open = dev_open,
@@ -42,6 +46,7 @@ static struct file_operations fops =
         .unlocked_ioctl = ioctl_funcs,
 };
 
+// Init function
 static int __init crypto_init(void)
 {
     printk(KERN_INFO "CRYPTOGRAPHY: Initializing the CRYPTOGRAPHY LKM\n");
@@ -78,6 +83,7 @@ static int __init crypto_init(void)
     return 0;
 }
 
+// Exit function
 static void __exit crypto_exit(void)
 {
     device_destroy(cryptoClass, MKDEV(majorNumber, 0)); // remove the device
@@ -87,13 +93,14 @@ static void __exit crypto_exit(void)
     printk(KERN_INFO "CRYPTOGRAPHY: Exiting from the LKM!\n");
 }
 
+//Ioctl operations
 static long ioctl_funcs(struct file *filp, unsigned int cmd, unsigned long arg)
 {
     int ret = 0;
     switch (cmd)
     {
 
-    case IOCTL_EXECUTE:
+    case IOCTL_EXECUTE: // Execute the encryption or decryption
         if (isEncrypt)
         {
             ret = encrypt_or_decrypt(true);
@@ -114,22 +121,22 @@ static long ioctl_funcs(struct file *filp, unsigned int cmd, unsigned long arg)
         
         break;
 
-    case IOCTL_ENCRYPT:
+    case IOCTL_ENCRYPT: // Set the encryption mode
         printk(KERN_INFO "CRYPTOGRAPHY: Encrypt selected");
         isEncrypt = true;
         break;
 
-    case IOCTL_DECRYPT:
+    case IOCTL_DECRYPT: // Set the decryption mode
         printk(KERN_INFO "CRYPTOGRAPHY: Decrypt selected");
         isEncrypt = false;
         break;
 
-    case IOCTL_INSERT_KEY:
+    case IOCTL_INSERT_KEY: // Insert the key
         key = arg & 0xFF;
-        printk(KERN_INFO "CRYPTOGRAPHY: Added key => %c", key);
-
+        printk(KERN_INFO "CRYPTOGRAPHY: Added key => %c", key); // The key would be printed in kernel logs
         break;
-    default:
+
+    default: // No operation
         printk(KERN_INFO "CRYPTOGRAPHY: Command not found");
         ret = -EINVAL;
         break;
@@ -137,9 +144,10 @@ static long ioctl_funcs(struct file *filp, unsigned int cmd, unsigned long arg)
     return ret;
 }
 
+// Encryption fucntion
 static int encrypt_or_decrypt(bool encrypt)
 {
-
+    // Handle the encryption
     if (encrypt)
     {
         size_t i;
@@ -152,6 +160,9 @@ static int encrypt_or_decrypt(bool encrypt)
         
         return 0;
     }
+
+    // Handle the decryption
+    
     else
     {
         size_t i;
@@ -172,6 +183,7 @@ static int encrypt_or_decrypt(bool encrypt)
     return -1;
 }
 
+// Open function for the device file
 static int dev_open(struct inode *inodep, struct file *filep)
 {
     numberOpens++;
@@ -179,6 +191,7 @@ static int dev_open(struct inode *inodep, struct file *filep)
     return 0;
 }
 
+// device file read function
 static ssize_t dev_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
 {
     int error_count = 0;
@@ -197,6 +210,7 @@ static ssize_t dev_read(struct file *filep, char *buffer, size_t len, loff_t *of
     }
 }
 
+// device file write function
 static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, loff_t *offset)
 {
     size_t ret = copy_from_user(received_message, buffer, len);
@@ -206,6 +220,7 @@ static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, lof
     return ret;
 }
 
+// Close function for the device file
 static int dev_release(struct inode *inodep, struct file *filep)
 {
     size_t i;
