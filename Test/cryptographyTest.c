@@ -16,7 +16,7 @@ int main()
 	int ret, fd;
 	char stringToSend[BUFFER_LENGTH];
 	char key[KEY_LENGTH];
-	char mode;
+	int mode;
 
 	unsigned long converted_key;
 
@@ -29,7 +29,7 @@ int main()
 		return errno;
 	}
 
-	printf("Insert the Key (8 charactor long):\n");
+	printf("Insert the Key (%d charactor long):\n", KEY_LENGTH);
 	scanf("%[^\n]%*c", key);
 	if (strlen(key) != KEY_LENGTH)
 	{
@@ -37,36 +37,35 @@ int main()
 		return -1;
 	}
 
-	ioctl(fd, IOCTL_INSERT_KEY, converted_key);
-
 	converted_key = 0;
 	converted_key |= (key[0]);
 	converted_key |= (key[1] << 8);
 	converted_key |= (key[2] << 16);
 	converted_key |= (key[3] << 24);
 
-	printf("Chose mode :\n");
+	ioctl(fd, IOCTL_INSERT_KEY, converted_key);
+
+	printf("Chose mode (input the option number):\n");
 	printf("1. Encryption\n");
 	printf("2. Decryption\n");
-	scanf(" %c", &mode);
+	scanf(" %d", &mode);
 
 	switch (mode)
 	{
-	case '1':
+	case 1:
 		ioctl(fd, IOCTL_ENCRYPT);
 		break;
-	
-	case '2':
+
+	case 2:
 		ioctl(fd, IOCTL_DECRYPT);
 		break;
 
 	default:
 		exit(-1);
 	}
-	
 
 	printf("Type in a short string to send to the kernel module for crypto graphic operation:\n");
-	scanf("%[^\n]%*c", stringToSend);
+	scanf(" %[^\n]%*c", stringToSend);
 
 	if (strlen(stringToSend) > BUFFER_LENGTH)
 	{
