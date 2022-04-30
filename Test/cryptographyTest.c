@@ -1,48 +1,98 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<errno.h>
-#include<fcntl.h>
-#include<string.h>
-#include<unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <string.h>
+#include <unistd.h>
 #include "../Module/ioctl_basic.h"
 
 #define BUFFER_LENGTH 256
+#define KEY_LENGTH 4
 
 static char receive[BUFFER_LENGTH];
 
-int main(){
-   int ret, fd;
-   char stringToSend[BUFFER_LENGTH];
-   printf("Starting device test code example...\n");
-   fd = open("/dev/cryptography", O_RDWR);
-   if (fd < 0){
-      perror("Failed to open the device...");
-      return errno;
-   }
+int main()
+{
+	int ret, fd;
+	char stringToSend[BUFFER_LENGTH];
+	char key[KEY_LENGTH];
+	char mode;
 
-   ioctl(fd,IOCTL_ENCRYPT);
+	unsigned long converted_key;
 
-   printf("Type in a short string to send to the kernel module:\n");
-   scanf("%[^\n]%*c", stringToSend);
-   printf("Writing message to the device [%s].\n", stringToSend);
-   ret = write(fd, stringToSend, strlen(stringToSend));
-   if (ret < 0){
-      perror("Failed to write the message to the device.");
-      return errno;
-   }
+	printf("Starting Cryptography module test...\n");
 
-   printf("Press ENTER to read back from the device...\n");
-   getchar();
+	fd = open("/dev/cryptography", O_RDWR);
+	if (fd < 0)
+	{
+		perror("Failed to open the device...");
+		return errno;
+	}
 
-   ioctl(fd,IOCTL_DECRYPT);
-   
-   printf("Reading from the device...\n");
-   ret = read(fd, receive, BUFFER_LENGTH);
-   if (ret < 0){
-      perror("Failed to read the message from the device.");
-      return errno;
-   }
-   printf("The received message is: [%s]\n", receive);
-   printf("End of the program\n");
-   return 0;
+	printf("Insert the Key (8 charactor long):\n");
+	scanf("%[^\n]%*c", key);
+	if (strlen(key) != KEY_LENGTH)
+	{
+		printf("Key should be %d chars!\n", KEY_LENGTH);
+		return -1;
+	}
+
+	ioctl(fd, IOCTL_INSERT_KEY, converted_key);
+
+	converted_key = 0;
+	converted_key |= (key[0]);
+	converted_key |= (key[1] << 8);
+	converted_key |= (key[2] << 16);
+	converted_key |= (key[3] << 24);
+
+	printf("Chose mode :\n");
+	printf("1. Encryption\n");
+	printf("2. Decryption\n");
+	scanf(" %c", &mode);
+
+	switch (mode)
+	{
+	case '1':
+		ioctl(fd, IOCTL_ENCRYPT);
+		break;
+	
+	case '2':
+		ioctl(fd, IOCTL_DECRYPT);
+		break;
+
+	default:
+		exit(-1);
+	}
+	
+
+	printf("Type in a short string to send to the kernel module for crypto graphic operation:\n");
+	scanf("%[^\n]%*c", stringToSend);
+
+	if (strlen(stringToSend) > BUFFER_LENGTH)
+	{
+		printf("String too long!\n");
+		return -1;
+	}
+
+	printf("Writing message to the device [%s].\n", stringToSend);
+	ret = write(fd, stringToSend, strlen(stringToSend));
+	if (ret < 0)
+	{
+		perror("Failed to write the message to the device.");
+		return errno;
+	}
+
+	printf("Press ENTER to read back from the device after the cryptographic operation...\n");
+	getchar();
+
+	printf("Reading from the device...\n");
+	ret = read(fd, receive, BUFFER_LENGTH);
+	if (ret < 0)
+	{
+		perror("Failed to read the message from the device.");
+		return errno;
+	}
+	printf("The received message is: [%s]\n", receive);
+	printf("End of the program\n");
+	return 0;
 }
