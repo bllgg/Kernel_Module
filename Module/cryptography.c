@@ -155,7 +155,6 @@ static int encrypt_or_decrypt(bool encrypt)
         for (i = 0; i < strlen(received_message); i++)
         {
             send_message[i] = (received_message[i] -32 + key -32) % 95 + 32;
-            printk(KERN_INFO "CRYPTOGRAPHY: Encrypted message => %c", send_message[i]);
         }
         
         return 0;
