@@ -1,52 +1,66 @@
 # CSC415-Device-Driver
-**Background**:
 
-The Linux operating system consists of the Kernel some other minor components and then a large number of Device Drivers.  Device drivers are the key to how various hardware devices interface with the computer.
+## Build the kernal module and user application
 
-**Task**:
+You can build the kernel module by executing the following command in the Module directory.
+```
+make all
+```
+The user app can be build using the 
+```
+make cryptographyTest
+```
+command in Test directory.
 
-Develop a skeleton device driver that can be loaded and run in Linux.  Then add some minor functionality to the device driver such as the user/application passing in a value to the device driver and the device driver returns that nth word from a file.  Include a document on how to build, load and interact with the device driver along with screen shots of output.
+You can clear all the build files using
+```
+make clean
+```
+command in both Module and Test directories.
 
-**Requirements**:
-It must be written in C.  It must be a valid an loadable device driver with at least some minimal user/application functionality. That includes an open, release, read, write, and at least one ioctl command.  It must also be able to be unloaded, and indicate that it has unloaded from the system.  Make use of the printk and copy_to_user functions.
 
-This must be run in the linux virtual machine.
+## View the kernel logs
 
-You should also write a user application that utilizes your device driver.
+kernel logs of the linux kernel can be seen by using
+```
+dmesg --following
+```
+command.
 
-Create TWO directories in your GitHub:  The first is `Module` that has your kernel module.  The second is `Test` that has your test user application.
+## Install the kernel module
 
-The writeup should have clear instructions on how to build your kernel module and your test program and how to install the kernel module and how to use your test program.
+You need to install the built kernel module in to the kernel using
+```
+sudo insmode cryptography.ko
+```
+within the Module directory.
 
-**Example**:
-Encrypt data, read and write a string, use ioctl to determine to encrypt or decrypt and to set an key. Os if set to encrypt, write a string, then read back the encrypted data.  Switch ioctl to decrypt then write the encrypted string and read back the original message (decrypted).
+## Run the application
 
-**NOTE:**
-No basic calculator allowed!
+After installing the kernel module into the kernel, the user application can be run.
 
-**Submission**:
+Use the **sudo** command for run the application, as we are going to access device files with the user application
+```
+sudo ./cryptographyTest
+```
+- First you will be asked for provide a key. For that, you need to inser a single capital English letter.
 
-Submit your write-up as a PDF on iLearn, your code and Makefile (modify that provided) in Git along with the PDF.
+- Then you will be asked for provide the mode. you need to insert the number of the option.
 
-**Hint**:
-The provided module makefile is a key to building kernel modules.
+- Then insert the phrase you need to encrypt or decrypt
 
-**Grading**:
+- Finally you will get the encrypted or decrypted phrase.
 
-This project will be graded based on meeting the following rubric. 
+**Note:** as im using symmetryc key encription technique, same key can be used for bothe Encryptiona and decryption.
 
-**Rubric**: 
-|Component 	| Points |
-|:------------------------------------------------------------------------|------:|
-|Loadable Device Driver Skeleton                                          |	 30   |
-|Correctness of load and unload functions                                 |	 10   |
-|Sample  - simple user/application interaction with the device driver     |  	20  |
-|Inline comments - meaningful describing concepts and functionality       | 	18  |
-|Standard Header a define in all prior projects for each file             |  	2   |
-|Write-up of project                                                      |  10   |
-|Screen shots showing all elements of functionality                       |       |
-|     (include load and unload as well as application interaction         |  10   |
+## Unload the kernel module
 
-	
+After running the user application, the kernel module should be unloaded.
+```
+sudo rmmode cryptography
+```
+can be used for unload the module.
 
-	
+## Screenshots
+
+![results](https://github.com/bllgg/Kernel_Module/blob/master/ScreenShots/Kazam_screenshot_00000.png)
